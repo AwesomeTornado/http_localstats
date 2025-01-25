@@ -82,6 +82,19 @@ fn main(){
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
+            "/cpu_frequency" =>{
+                let system_quantity = sys.cpus();
+                // Wait a bit because CPU usage is based on diff.
+                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+                // Refresh CPUs again to get actual value.
+                sys.refresh_cpu_usage();
+                let mut response_string = "".to_string();
+                for cpu in sys.cpus() {
+                    println!("{}%", cpu.cpu_usage());
+                    response_string += (cpu.frequency().to_string().as_str().to_owned() + "MHz,").as_str();
+                }
+                Response::text(response_string)
+            },
             "/owo" =>{
                 Response::text("UwU")
             },
@@ -89,7 +102,7 @@ fn main(){
                 Response::text("OwO")
             },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, ")
+                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency")
             }
             _ =>{
                 Response::empty_404()
