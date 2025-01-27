@@ -12,7 +12,8 @@ fn main(){
         let mut sys = System::new_all();
         sys.refresh_all();
         match request.url().to_ascii_lowercase().as_str() {
-            "/GET_ALL_STATS" =>{
+            "/get_all_stats" =>{
+                println!("Get all stats...");
                 let ram_total = sys.total_memory();
                 let ram_used = sys.used_memory();
                 let swap_total = sys.total_swap();
@@ -49,6 +50,7 @@ fn main(){
                 for disk in &disks{
                     storage_free_string += &*(disk.available_space().to_string().to_owned() + ";");
                 }
+                let logical_core_count = segmented_cpu.len();
 
                 //strip final delimiter.
                 cpu_frequency_string = cpu_frequency_string.strip_suffix(";").unwrap_or("ERROR").to_string();
@@ -71,12 +73,13 @@ fn main(){
                 response_string += &*(",cpu_arch=".to_string() + &*cpu_arch);
                 response_string += &*(",name=".to_string() + &*name);
                 response_string += &*(",physical_core_count=".to_string() + &*physical_core_count.to_string());
+                response_string += &*(",logical_core_count=".to_string() + &*logical_core_count.to_string());
                 response_string += &*(",verbose_os_version=".to_string() + &*verbose_os_version);
                 response_string += &*(",global_cpu_usage=".to_string() + &*global_cpu_usage.to_string());
                 response_string += &*(",frequency=".to_string() + &*cpu_frequency_string);
                 response_string += &*(",core_usage=".to_string() + &*cpu_usage_string);
                 response_string += &*(",core_names=".to_string() + &*cpu_names_string);
-                response_string += &*(",free_storage".to_string() + &*storage_free_string);
+                response_string += &*(",free_storage=".to_string() + &*storage_free_string);
 
                 Response::text(response_string)
             },
