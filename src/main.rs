@@ -150,7 +150,7 @@ fn main(){
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
-            "/available_space" =>{
+            "/free_storage" =>{
                 let system_quantity = Disks::new_with_refreshed_list();
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
@@ -181,8 +181,11 @@ fn main(){
             "/uwu" =>{
                 Response::text("OwO")
             },
+            "/units" =>{
+                Response::text("OwO:UwU (String), UwU:OwO (String), Ram:Bytes (Int), Swap:Bytes (Int), Storage:Bytes (Int), CPU Usage:Percent (Float), Uptime:Seconds (Int), Counts:Quantity (Int), Frequency:MHz (Float), Storage:Bytes (Int)")
+            },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /available_space, /GET_ALL_STATS")
+                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /free_storage, /GET_ALL_STATS, /units")
             }
             _ =>{
                 Response::empty_404()
