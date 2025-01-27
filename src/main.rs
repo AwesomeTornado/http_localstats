@@ -62,17 +62,23 @@ fn main(){
                 cpu_usage_string = "[".to_string() + &*cpu_usage_string.to_owned() + "]";
                 storage_free_string = "[".to_string() + &*storage_free_string.to_owned() + "]";
 
+                let mut response_string = String::new();
+                response_string += "ram_total=".to_string() + &*ram_total.to_string();
+                response_string += ",ram_used=".to_string() + &*ram_used.to_string();
+                response_string += ",swap_total=".to_string() + &*swap_total.to_string();
+                response_string += ",swap_used=".to_string() + &*swap_used.to_string();
+                response_string += ",uptime=".to_string() + &*uptime.to_string();
+                response_string += ",cpu_arch=".to_string() + &*cpu_arch;
+                response_string += ",name=".to_string() + &*name;
+                response_string += ",physical_core_count=".to_string() + &*physical_core_count.to_string();
+                response_string += ",verbose_os_version=".to_string() + &*verbose_os_version;
+                response_string += ",global_cpu_usage=".to_string() + &*global_cpu_usage;
+                response_string += ",frequency=".to_string() + &*cpu_frequency_string;
+                response_string += ",core_usage=".to_string() + &*cpu_usage_string;
+                response_string += ",core_names=".to_string() + &*cpu_names_string;
+                response_string += ",free_storage".to_string() + &*storage_free_string;
 
-
-
-                let mut response_string = "".to_string();
-                for cpu in sys.cpus() {
-                    println!("{}%", cpu.cpu_usage());
-                    response_string += (cpu.cpu_usage().to_string().as_str().to_owned() + "%,").as_str();
-                }
-
-                //let response_string = system_quantity.to_string();
-                Response::text("todo")
+                Response::text(response_string)
             },
             "/ram_total" =>{
                 let system_quantity = sys.total_memory();
