@@ -12,6 +12,29 @@ fn main(){
         let mut sys = System::new_all();
         sys.refresh_all();
         match request.url().to_ascii_lowercase().as_str() {
+            "/GET_ALL_STATS" =>{
+                let ram_total = sys.total_memory();
+                let ram_used = sys.used_memory();
+                let swap_total = sys.total_swap();
+                let swap_used = sys.used_swap();
+
+                let uptime = sysinfo::System::uptime();
+                let cpu_arch = sysinfo::System::cpu_arch();
+
+                let name = sysinfo::System::name().unwrap_or("ERROR".parse().unwrap());
+                let physical_core_count = sys.physical_core_count().unwrap_or(0usize);
+                let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
+
+                let _ = sys.global_cpu_usage();
+                // Wait a bit because CPU usage is based on diff.
+                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+                // Refresh CPUs again to get actual value.
+                sys.refresh_cpu_usage();
+                let global_cpu_usage = sys.global_cpu_usage();
+
+                let response_string = system_quantity.to_string();
+                Response::text(response_string)
+            },
             "/ram_total" =>{
                 let system_quantity = sys.total_memory();
                 let response_string = system_quantity.to_string();
@@ -33,12 +56,12 @@ fn main(){
                 Response::text(response_string)
             },
             "/global_cpu_usage" =>{
-                let system_quantity = sys.global_cpu_usage();
+                let _ = sys.global_cpu_usage();
                 // Wait a bit because CPU usage is based on diff.
                 std::thread::sleep(MINIMUM_CPU_UPDATE_INTERVAL);
                 // Refresh CPUs again to get actual value.
                 sys.refresh_cpu_usage();
-                let response_string = system_quantity.to_string();
+                let response_string = sys.global_cpu_usage().to_string();
                 Response::text(response_string)
             },
             "/segmented_cpu_usage" =>{
@@ -60,7 +83,7 @@ fn main(){
                 Response::text(response_string)
             },
             "/physical_core_count" =>{
-                let system_quantity = sys.physical_core_count().unwrap_or("ERROR".parse().unwrap());
+                let system_quantity = sys.physical_core_count().unwrap_or(0usize);
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
@@ -111,7 +134,7 @@ fn main(){
                 Response::text("OwO")
             },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /available_space")
+                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /available_space, /GET_ALL_STATS")
             }
             _ =>{
                 Response::empty_404()
