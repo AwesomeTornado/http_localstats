@@ -170,14 +170,15 @@ fn main(){
                 let system_quantity = Disks::new_with_refreshed_list();
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
-                    println!("[{:?}] {}B", disk.name(), disk.available_space());
+                    let free_space = disk.available_space();
+                    println!("[{:?}] {}B", disk.name(), free_space);
                     let disk_name = disk.name().to_str().unwrap_or("ERROR");
                     response_string += match disk_name.to_string().as_str(){
                         ""=>"NoDiskName",
                         _ => disk_name,
                     };
                     response_string += "=>";
-                    response_string += disk.available_space().to_string().as_str();
+                    response_string += free_space.to_string().as_str();
                     response_string += "B,";
                 }
                 Response::text(response_string)
@@ -186,14 +187,15 @@ fn main(){
                 let system_quantity = Disks::new_with_refreshed_list();
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
-                    println!("[{:?}] {}B", disk.name(), disk.total_space());
+                    let total_space = disk.total_space();
+                    println!("[{:?}] {}B", disk.name(), total_space);
                     let disk_name = disk.name().to_str().unwrap_or("ERROR");
                     response_string += match disk_name.to_string().as_str(){
                         ""=>"NoDiskName",
                         _ => disk_name,
                     };
                     response_string += "=>";
-                    response_string += disk.available_space().to_string().as_str();
+                    response_string += total_space.to_string().as_str();
                     response_string += "B,";
                 }
                 Response::text(response_string)
