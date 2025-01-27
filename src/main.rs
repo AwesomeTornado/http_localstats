@@ -184,8 +184,11 @@ fn main(){
             "/units" =>{
                 Response::text("OwO:UwU (String), UwU:OwO (String), Ram:Bytes (Int), Swap:Bytes (Int), Storage:Bytes (Int), CPU Usage:Percent (Float), Uptime:Seconds (Int), Counts:Quantity (Int), Frequency:MHz (Float), Storage:Bytes (Int)")
             },
+            "/author" =>{
+                Response::text("Created by Awesome_Tornado_ on GitHub, __Choco__ on Resonite. \nCC-BY-NC License, keeping this http endpoint message, and keeping any documentation that it exists (eg: the /index endpoint) will be considered appropriate attribution")
+            },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /free_storage, /GET_ALL_STATS, /units")
+                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /free_storage, /GET_ALL_STATS, /units, /author")
             }
             _ =>{
                 Response::empty_404()
