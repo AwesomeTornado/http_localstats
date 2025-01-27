@@ -1,8 +1,5 @@
-use rouille::Request;
 use rouille::Response;
-use sysinfo::{
-    Components, Disks, Networks, System, CpuRefreshKind, RefreshKind
-};
+use sysinfo::{Disks, System, MINIMUM_CPU_UPDATE_INTERVAL};
 
 
 
@@ -38,16 +35,16 @@ fn main(){
             "/global_cpu_usage" =>{
                 let system_quantity = sys.global_cpu_usage();
                 // Wait a bit because CPU usage is based on diff.
-                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+                std::thread::sleep(MINIMUM_CPU_UPDATE_INTERVAL);
                 // Refresh CPUs again to get actual value.
                 sys.refresh_cpu_usage();
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
             "/segmented_cpu_usage" =>{
-                let system_quantity = sys.cpus();
+                let _ = sys.cpus();
                 // Wait a bit because CPU usage is based on diff.
-                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+                std::thread::sleep(MINIMUM_CPU_UPDATE_INTERVAL);
                 // Refresh CPUs again to get actual value.
                 sys.refresh_cpu_usage();
                 let mut response_string = "".to_string();
@@ -58,7 +55,7 @@ fn main(){
                 Response::text(response_string)
             },
             "/uptime" =>{
-                let system_quantity = sysinfo::System::uptime();
+                let system_quantity = System::uptime();
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
@@ -68,17 +65,17 @@ fn main(){
                 Response::text(response_string)
             },
             "/name" =>{
-                let system_quantity = sysinfo::System::name().unwrap_or("ERROR".parse().unwrap());
+                let system_quantity = System::name().unwrap_or("ERROR".parse().unwrap());
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
             "/verbose_os_version" =>{
-                let system_quantity = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
+                let system_quantity = System::long_os_version().unwrap_or("ERROR".parse().unwrap());
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
             "/cpu_arch" =>{
-                let system_quantity = sysinfo::System::cpu_arch();
+                let system_quantity = System::cpu_arch();
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
@@ -87,7 +84,7 @@ fn main(){
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
                     println!("[{:?}] {}B", disk.name(), disk.available_space());
-                    response_string += disk.name().to_string().as_str();
+                    response_string += disk.name().to_str().unwrap_or("ERROR").to_string().as_str();
                     response_string += "=>";
                     response_string += disk.available_space().to_string().as_str();
                     response_string += "B,";
@@ -95,9 +92,9 @@ fn main(){
                 Response::text(response_string)
             },
             "/cpu_frequency" =>{
-                let system_quantity = sys.cpus();
+                let _ = sys.cpus();
                 // Wait a bit because CPU usage is based on diff.
-                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+                std::thread::sleep(MINIMUM_CPU_UPDATE_INTERVAL);
                 // Refresh CPUs again to get actual value.
                 sys.refresh_cpu_usage();
                 let mut response_string = "".to_string();
