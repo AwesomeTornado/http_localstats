@@ -186,7 +186,7 @@ fn main(){
                 let system_quantity = Disks::new_with_refreshed_list();
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
-                    println!("[{:?}] {}B", disk.name(), disk.available_space());
+                    println!("[{:?}] {}B", disk.name(), disk.total_space());
                     let disk_name = disk.name().to_str().unwrap_or("ERROR");
                     response_string += match disk_name.to_string().as_str(){
                         ""=>"NoDiskName",
