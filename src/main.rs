@@ -30,6 +30,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     let mut cpu_usage_string = String::new();
     let mut cpu_names_string = String::new();
     let mut storage_free_string = String::new();
+    let mut storage_total_string = String::new();
 
     //populate string arrays
     for cpu in segmented_cpu{
@@ -39,6 +40,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     }
     for disk in &disks{
         storage_free_string += &*(disk.available_space().to_string().to_owned() + ";");
+        storage_total_string += &*(disk.total_space().to_string().to_owned() + ";");
     }
     let logical_core_count = segmented_cpu.len();
 
@@ -47,6 +49,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     cpu_names_string = cpu_names_string.strip_suffix(";").unwrap_or("ERROR").to_string();
     cpu_usage_string = cpu_usage_string.strip_suffix(";").unwrap_or("ERROR").to_string();
     storage_free_string = storage_free_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+    storage_total_string = storage_total_string.strip_suffix(";").unwrap_or("ERROR").to_string();
 
     //encapsulate strings in brackets for easy parsing later on. Please note that these "arrays" may be any arbitrary length
     cpu_frequency_string = "[".to_string() + &*cpu_frequency_string.to_owned() + "]";
@@ -71,6 +74,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     response_string += &*(",core_usage=".to_string() + &*cpu_usage_string);
     response_string += &*(",core_names=".to_string() + &*cpu_names_string);
     response_string += &*(",free_storage=".to_string() + &*storage_free_string);
+    response_string += &*(",total_storage=".to_string() + &*storage_total_string);
 
     if newlines{
         return response_string.replace(",", "\n");
@@ -166,7 +170,27 @@ fn main(){
                 let mut response_string = "".to_string();
                 for disk in system_quantity.list() {
                     println!("[{:?}] {}B", disk.name(), disk.available_space());
-                    response_string += disk.name().to_str().unwrap_or("ERROR").to_string().as_str();
+                    let disk_name = disk.name().to_str().unwrap_or("ERROR");
+                    response_string += match disk_name.to_string().as_str(){
+                        ""=>"NoDiskName",
+                        _ => disk_name,
+                    };
+                    response_string += "=>";
+                    response_string += disk.available_space().to_string().as_str();
+                    response_string += "B,";
+                }
+                Response::text(response_string)
+            },
+            "/total_storage" =>{
+                let system_quantity = Disks::new_with_refreshed_list();
+                let mut response_string = "".to_string();
+                for disk in system_quantity.list() {
+                    println!("[{:?}] {}B", disk.name(), disk.available_space());
+                    let disk_name = disk.name().to_str().unwrap_or("ERROR");
+                    response_string += match disk_name.to_string().as_str(){
+                        ""=>"NoDiskName",
+                        _ => disk_name,
+                    };
                     response_string += "=>";
                     response_string += disk.available_space().to_string().as_str();
                     response_string += "B,";
@@ -199,7 +223,7 @@ fn main(){
                 Response::text("Created by Awesome_Tornado_ on GitHub, __Choco__ on Resonite. \nCC-BY-NC License, keeping this http endpoint message, and keeping any documentation that it exists (eg: the /index endpoint) will be considered appropriate attribution")
             },
             "/index" => {
-                Response::text("/ram_total\n/ram_used\n/swap_total\n/swap_used\n/cpu_total\n/global_cpu_usage\n/uptime\n/owo\n/uwu\n/segmented_cpu_usage\n/physical_core_count\n/name\n/verbose_os_version\n/cpu_arch\n/cpu_frequency\n/free_storage\n/get_all_stats\n/get_all_stats_csv\n/units\n/author\n/hostname")
+                Response::text("/ram_total\n/ram_used\n/swap_total\n/swap_used\n/cpu_total\n/global_cpu_usage\n/uptime\n/owo\n/uwu\n/segmented_cpu_usage\n/physical_core_count\n/name\n/verbose_os_version\n/cpu_arch\n/cpu_frequency\n/free_storage\n/total_storage\n/get_all_stats\n/get_all_stats_csv\n/units\n/author\n/hostname")
             }
             _ =>{
                 Response::empty_404()
