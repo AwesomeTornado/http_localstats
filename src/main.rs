@@ -26,11 +26,50 @@ fn main(){
                 let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
 
                 let _ = sys.global_cpu_usage();
-                // Wait a bit because CPU usage is based on diff.
+                let _ = sys.cpus();
+                // Wait a bit because cpu usage is based on diff.
                 std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
                 // Refresh CPUs again to get actual value.
                 sys.refresh_cpu_usage();
                 let global_cpu_usage = sys.global_cpu_usage();
+                let segmented_cpu = sys.cpus();//cpu's contains freq and segmented usage
+                let disks = Disks::new_with_refreshed_list();
+
+                let mut cpu_frequency_string = String::new();
+                let mut cpu_usage_string = String::new();
+                let mut cpu_names_string = String::new();
+                let mut storage_free_string = String::new();
+
+                //populate string arrays
+                for cpu in segmented_cpu{
+                    cpu_frequency_string += &*(cpu.frequency().to_string().to_owned() + ";");
+                    cpu_names_string += &*(cpu.name().to_string().to_owned() + ";");
+                    cpu_usage_string += &*(cpu.cpu_usage().to_string().to_owned() + ";");
+                }
+                for disk in disks{
+                    storage_free_string += &*(disk.available_space().to_string().to_owned() + ";");
+                }
+
+                //strip final delimiter.
+                cpu_frequency_string = cpu_frequency_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+                cpu_names_string = cpu_names_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+                cpu_usage_string = cpu_usage_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+                storage_free_string = storage_free_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+
+                //encapsulate strings in brackets for easy parsing later on. Please note that these "arrays" may be any arbitrary length
+                cpu_frequency_string = "[".to_string() + &*cpu_frequency_string.to_owned() + "]";
+                cpu_names_string = "[".to_string() + &*cpu_names_string.to_owned() + "]";
+                cpu_usage_string = "[".to_string() + &*cpu_usage_string.to_owned() + "]";
+                storage_free_string = "[".to_string() + &*storage_free_string.to_owned() + "]";
+
+
+
+
+                let mut response_string = "".to_string();
+                for cpu in sys.cpus() {
+                    println!("{}%", cpu.cpu_usage());
+                    response_string += (cpu.cpu_usage().to_string().as_str().to_owned() + "%,").as_str();
+                }
 
                 //let response_string = system_quantity.to_string();
                 Response::text("todo")
