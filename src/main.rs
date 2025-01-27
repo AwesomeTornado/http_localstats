@@ -82,6 +82,18 @@ fn main(){
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
+            "/available_space" =>{
+                let system_quantity = Disks::new_with_refreshed_list();
+                let mut response_string = "".to_string();
+                for disk in system_quantity.list() {
+                    println!("[{:?}] {}B", disk.name(), disk.available_space());
+                    response_string += disk.name().to_string().as_str();
+                    response_string += "=>";
+                    response_string += disk.available_space().to_string().as_str();
+                    response_string += "B,";
+                }
+                Response::text(response_string)
+            },
             "/cpu_frequency" =>{
                 let system_quantity = sys.cpus();
                 // Wait a bit because CPU usage is based on diff.
@@ -102,7 +114,7 @@ fn main(){
                 Response::text("OwO")
             },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency")
+                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /available_space")
             }
             _ =>{
                 Response::empty_404()
