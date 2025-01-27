@@ -11,9 +11,10 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     let uptime = sysinfo::System::uptime();
     let cpu_arch = sysinfo::System::cpu_arch();
 
-    let name = sysinfo::System::name().unwrap_or("ERROR".parse().unwrap());
+    let hostname = sysinfo::System::host_name().unwrap_or("ERROR".to_string());
+    let name = sysinfo::System::name().unwrap_or("ERROR".to_string());
     let physical_core_count = sys.physical_core_count().unwrap_or(0usize);
-    let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
+    let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".to_string());
 
     let _ = sys.global_cpu_usage();
     let _ = sys.cpus();
@@ -61,6 +62,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     response_string += &*(",uptime=".to_string() + &*uptime.to_string());
     response_string += &*(",cpu_arch=".to_string() + &*cpu_arch);
     response_string += &*(",name=".to_string() + &*name);
+    response_string += &*(",host=".to_string() + &*hostname);
     response_string += &*(",physical_core_count=".to_string() + &*physical_core_count.to_string());
     response_string += &*(",logical_core_count=".to_string() + &*logical_core_count.to_string());
     response_string += &*(",verbose_os_version=".to_string() + &*verbose_os_version);
@@ -84,11 +86,11 @@ fn main(){
         let mut sys = System::new_all();
         sys.refresh_all();
         match request.url().to_ascii_lowercase().as_str() {
-            "/get_all_stats" =>{
-                Response::text(all_data(false, sys))
+            "/get_all_stats_csv" =>{
+                Response::text(all_data(false, &mut sys))
             },
-            "/get_all_stats_newline" =>{
-                Response::text(all_data(true, sys))
+            "/get_all_stats" =>{
+                Response::text(all_data(true, &mut sys))
             },
             "/ram_total" =>{
                 let system_quantity = sys.total_memory();
@@ -137,24 +139,26 @@ fn main(){
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
+            "/hostname" =>{
+                let system_quantity = System::host_name();
+                let response_string = system_quantity.unwrap_or("ERROR".to_string());
+                Response::text(response_string)
+            },
             "/physical_core_count" =>{
                 let system_quantity = sys.physical_core_count().unwrap_or(0usize);
                 let response_string = system_quantity.to_string();
                 Response::text(response_string)
             },
             "/name" =>{
-                let system_quantity = System::name().unwrap_or("ERROR".parse().unwrap());
-                let response_string = system_quantity.to_string();
+                let response_string = System::name().unwrap_or("ERROR".to_string());
                 Response::text(response_string)
             },
             "/verbose_os_version" =>{
-                let system_quantity = System::long_os_version().unwrap_or("ERROR".parse().unwrap());
-                let response_string = system_quantity.to_string();
+                let response_string = System::long_os_version().unwrap_or("ERROR".parse().unwrap());
                 Response::text(response_string)
             },
             "/cpu_arch" =>{
-                let system_quantity = System::cpu_arch();
-                let response_string = system_quantity.to_string();
+                let response_string = System::cpu_arch();
                 Response::text(response_string)
             },
             "/free_storage" =>{
@@ -195,7 +199,7 @@ fn main(){
                 Response::text("Created by Awesome_Tornado_ on GitHub, __Choco__ on Resonite. \nCC-BY-NC License, keeping this http endpoint message, and keeping any documentation that it exists (eg: the /index endpoint) will be considered appropriate attribution")
             },
             "/index" => {
-                Response::text("/ram_total, /ram_used, /swap_total, /swap_used, /cpu_total, /global_cpu_usage, /uptime, /owo, /uwu, /segmented_cpu_usage, /physical_core_count, /name, /verbose_os_version, /cpu_arch, /cpu_frequency, /free_storage, /GET_ALL_STATS, /units, /author")
+                Response::text("/ram_total\n/ram_used\n/swap_total\n/swap_used\n/cpu_total\n/global_cpu_usage\n/uptime\n/owo\n/uwu\n/segmented_cpu_usage\n/physical_core_count\n/name\n/verbose_os_version\n/cpu_arch\n/cpu_frequency\n/free_storage\n/get_all_stats\n/get_all_stats_csv\n/units\n/author\n/hostname")
             }
             _ =>{
                 Response::empty_404()
