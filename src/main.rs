@@ -2,7 +2,79 @@ use rouille::Response;
 use sysinfo::{Disks, System, MINIMUM_CPU_UPDATE_INTERVAL};
 
 
+fn all_data(newlines:bool, sys: &mut System)->String{
+    let ram_total = sys.total_memory();
+    let ram_used = sys.used_memory();
+    let swap_total = sys.total_swap();
+    let swap_used = sys.used_swap();
 
+    let uptime = sysinfo::System::uptime();
+    let cpu_arch = sysinfo::System::cpu_arch();
+
+    let name = sysinfo::System::name().unwrap_or("ERROR".parse().unwrap());
+    let physical_core_count = sys.physical_core_count().unwrap_or(0usize);
+    let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
+
+    let _ = sys.global_cpu_usage();
+    let _ = sys.cpus();
+    // Wait a bit because cpu usage is based on diff.
+    std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+    // Refresh CPUs again to get actual value.
+    sys.refresh_cpu_usage();
+    let global_cpu_usage = sys.global_cpu_usage();
+    let segmented_cpu = sys.cpus();//cpu's contains freq and segmented usage
+    let disks = Disks::new_with_refreshed_list();
+
+    let mut cpu_frequency_string = String::new();
+    let mut cpu_usage_string = String::new();
+    let mut cpu_names_string = String::new();
+    let mut storage_free_string = String::new();
+
+    //populate string arrays
+    for cpu in segmented_cpu{
+        cpu_frequency_string += &*(cpu.frequency().to_string().to_owned() + ";");
+        cpu_names_string += &*(cpu.name().to_string().to_owned() + ";");
+        cpu_usage_string += &*(cpu.cpu_usage().to_string().to_owned() + ";");
+    }
+    for disk in &disks{
+        storage_free_string += &*(disk.available_space().to_string().to_owned() + ";");
+    }
+    let logical_core_count = segmented_cpu.len();
+
+    //strip final delimiter.
+    cpu_frequency_string = cpu_frequency_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+    cpu_names_string = cpu_names_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+    cpu_usage_string = cpu_usage_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+    storage_free_string = storage_free_string.strip_suffix(";").unwrap_or("ERROR").to_string();
+
+    //encapsulate strings in brackets for easy parsing later on. Please note that these "arrays" may be any arbitrary length
+    cpu_frequency_string = "[".to_string() + &*cpu_frequency_string.to_owned() + "]";
+    cpu_names_string = "[".to_string() + &*cpu_names_string.to_owned() + "]";
+    cpu_usage_string = "[".to_string() + &*cpu_usage_string.to_owned() + "]";
+    storage_free_string = "[".to_string() + &*storage_free_string.to_owned() + "]";
+
+    let mut response_string = String::new();
+    response_string += &*("ram_total=".to_string() + &*ram_total.to_string());
+    response_string += &*(",ram_used=".to_string() + &*ram_used.to_string());
+    response_string += &*(",swap_total=".to_string() + &*swap_total.to_string());
+    response_string += &*(",swap_used=".to_string() + &*swap_used.to_string());
+    response_string += &*(",uptime=".to_string() + &*uptime.to_string());
+    response_string += &*(",cpu_arch=".to_string() + &*cpu_arch);
+    response_string += &*(",name=".to_string() + &*name);
+    response_string += &*(",physical_core_count=".to_string() + &*physical_core_count.to_string());
+    response_string += &*(",logical_core_count=".to_string() + &*logical_core_count.to_string());
+    response_string += &*(",verbose_os_version=".to_string() + &*verbose_os_version);
+    response_string += &*(",global_cpu_usage=".to_string() + &*global_cpu_usage.to_string());
+    response_string += &*(",frequency=".to_string() + &*cpu_frequency_string);
+    response_string += &*(",core_usage=".to_string() + &*cpu_usage_string);
+    response_string += &*(",core_names=".to_string() + &*cpu_names_string);
+    response_string += &*(",free_storage=".to_string() + &*storage_free_string);
+
+    if newlines{
+        return response_string.replace(",", "\n");
+    }
+    response_string
+}
 
 fn main(){
     println!("hello, World!");
@@ -13,75 +85,10 @@ fn main(){
         sys.refresh_all();
         match request.url().to_ascii_lowercase().as_str() {
             "/get_all_stats" =>{
-                println!("Get all stats...");
-                let ram_total = sys.total_memory();
-                let ram_used = sys.used_memory();
-                let swap_total = sys.total_swap();
-                let swap_used = sys.used_swap();
-
-                let uptime = sysinfo::System::uptime();
-                let cpu_arch = sysinfo::System::cpu_arch();
-
-                let name = sysinfo::System::name().unwrap_or("ERROR".parse().unwrap());
-                let physical_core_count = sys.physical_core_count().unwrap_or(0usize);
-                let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".parse().unwrap());
-
-                let _ = sys.global_cpu_usage();
-                let _ = sys.cpus();
-                // Wait a bit because cpu usage is based on diff.
-                std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
-                // Refresh CPUs again to get actual value.
-                sys.refresh_cpu_usage();
-                let global_cpu_usage = sys.global_cpu_usage();
-                let segmented_cpu = sys.cpus();//cpu's contains freq and segmented usage
-                let disks = Disks::new_with_refreshed_list();
-
-                let mut cpu_frequency_string = String::new();
-                let mut cpu_usage_string = String::new();
-                let mut cpu_names_string = String::new();
-                let mut storage_free_string = String::new();
-
-                //populate string arrays
-                for cpu in segmented_cpu{
-                    cpu_frequency_string += &*(cpu.frequency().to_string().to_owned() + ";");
-                    cpu_names_string += &*(cpu.name().to_string().to_owned() + ";");
-                    cpu_usage_string += &*(cpu.cpu_usage().to_string().to_owned() + ";");
-                }
-                for disk in &disks{
-                    storage_free_string += &*(disk.available_space().to_string().to_owned() + ";");
-                }
-                let logical_core_count = segmented_cpu.len();
-
-                //strip final delimiter.
-                cpu_frequency_string = cpu_frequency_string.strip_suffix(";").unwrap_or("ERROR").to_string();
-                cpu_names_string = cpu_names_string.strip_suffix(";").unwrap_or("ERROR").to_string();
-                cpu_usage_string = cpu_usage_string.strip_suffix(";").unwrap_or("ERROR").to_string();
-                storage_free_string = storage_free_string.strip_suffix(";").unwrap_or("ERROR").to_string();
-
-                //encapsulate strings in brackets for easy parsing later on. Please note that these "arrays" may be any arbitrary length
-                cpu_frequency_string = "[".to_string() + &*cpu_frequency_string.to_owned() + "]";
-                cpu_names_string = "[".to_string() + &*cpu_names_string.to_owned() + "]";
-                cpu_usage_string = "[".to_string() + &*cpu_usage_string.to_owned() + "]";
-                storage_free_string = "[".to_string() + &*storage_free_string.to_owned() + "]";
-
-                let mut response_string = String::new();
-                response_string += &*("ram_total=".to_string() + &*ram_total.to_string());
-                response_string += &*(",ram_used=".to_string() + &*ram_used.to_string());
-                response_string += &*(",swap_total=".to_string() + &*swap_total.to_string());
-                response_string += &*(",swap_used=".to_string() + &*swap_used.to_string());
-                response_string += &*(",uptime=".to_string() + &*uptime.to_string());
-                response_string += &*(",cpu_arch=".to_string() + &*cpu_arch);
-                response_string += &*(",name=".to_string() + &*name);
-                response_string += &*(",physical_core_count=".to_string() + &*physical_core_count.to_string());
-                response_string += &*(",logical_core_count=".to_string() + &*logical_core_count.to_string());
-                response_string += &*(",verbose_os_version=".to_string() + &*verbose_os_version);
-                response_string += &*(",global_cpu_usage=".to_string() + &*global_cpu_usage.to_string());
-                response_string += &*(",frequency=".to_string() + &*cpu_frequency_string);
-                response_string += &*(",core_usage=".to_string() + &*cpu_usage_string);
-                response_string += &*(",core_names=".to_string() + &*cpu_names_string);
-                response_string += &*(",free_storage=".to_string() + &*storage_free_string);
-
-                Response::text(response_string)
+                Response::text(all_data(false, sys))
+            },
+            "/get_all_stats_newline" =>{
+                Response::text(all_data(true, sys))
             },
             "/ram_total" =>{
                 let system_quantity = sys.total_memory();
