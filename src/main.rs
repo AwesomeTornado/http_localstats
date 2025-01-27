@@ -32,8 +32,8 @@ fn main(){
                 sys.refresh_cpu_usage();
                 let global_cpu_usage = sys.global_cpu_usage();
 
-                let response_string = system_quantity.to_string();
-                Response::text(response_string)
+                //let response_string = system_quantity.to_string();
+                Response::text("todo")
             },
             "/ram_total" =>{
                 let system_quantity = sys.total_memory();
