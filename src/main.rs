@@ -8,18 +8,18 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     let swap_total = sys.total_swap();
     let swap_used = sys.used_swap();
 
-    let uptime = sysinfo::System::uptime();
-    let cpu_arch = sysinfo::System::cpu_arch();
+    let uptime = System::uptime();
+    let cpu_arch = System::cpu_arch();
 
-    let hostname = sysinfo::System::host_name().unwrap_or("ERROR".to_string());
-    let name = sysinfo::System::name().unwrap_or("ERROR".to_string());
+    let hostname = System::host_name().unwrap_or("ERROR".to_string());
+    let name = System::name().unwrap_or("ERROR".to_string());
     let physical_core_count = sys.physical_core_count().unwrap_or(0usize);
-    let verbose_os_version = sysinfo::System::long_os_version().unwrap_or("ERROR".to_string());
+    let verbose_os_version = System::long_os_version().unwrap_or("ERROR".to_string());
 
     let _ = sys.global_cpu_usage();
     let _ = sys.cpus();
     // Wait a bit because cpu usage is based on diff.
-    std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+    std::thread::sleep(MINIMUM_CPU_UPDATE_INTERVAL);
     // Refresh CPUs again to get actual value.
     sys.refresh_cpu_usage();
     let global_cpu_usage = sys.global_cpu_usage();
@@ -56,6 +56,7 @@ fn all_data(newlines:bool, sys: &mut System)->String{
     cpu_names_string = "[".to_string() + &*cpu_names_string.to_owned() + "]";
     cpu_usage_string = "[".to_string() + &*cpu_usage_string.to_owned() + "]";
     storage_free_string = "[".to_string() + &*storage_free_string.to_owned() + "]";
+    storage_total_string = "[".to_string() + &*storage_total_string.to_owned() + "]";
 
     let mut response_string = String::new();
     response_string += &*("ram_total=".to_string() + &*ram_total.to_string());
@@ -86,7 +87,7 @@ fn main(){
     println!("hello, World!");
 
     rouille::start_server("0.0.0.0:6900", move |request| {
-        println!("recvd req to {}", request.url());
+        println!("received request to {}", request.url());
         let mut sys = System::new_all();
         sys.refresh_all();
         match request.url().to_ascii_lowercase().as_str() {
